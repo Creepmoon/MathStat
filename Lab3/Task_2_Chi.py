@@ -1,7 +1,6 @@
 import pandas
 import numpy as np
-from scipy.special import obl_ang1
-from scipy.stats import chi2_contingency
+from scipy.stats import chi2
 
 df = pandas.read_csv('kc_house_data.csv')
 
@@ -14,19 +13,33 @@ old_houses = df[df['age'] > 50]['price'].values
 
 bins =  np.linspace(df['price'].min(), df['price'].max(), 11)
 
-new_bins = pandas.cut(new_houses, bins=bins)
-old_bins = pandas.cut(old_houses, bins=bins)
+new_counts, _ = np.histogram(new_houses, bins=bins)
+old_counts, _ = np.histogram(old_houses, bins=bins)
 
-new_counts = new_bins.value_counts()
-old_counts = old_bins.value_counts()
+observed = np.array([new_counts, old_counts])
 
-contingency_table = pandas.DataFrame({
-    'New Houses': new_counts,
-    'Old Houses': old_counts})
+total_counts = observed.sum(axis=0)
+total_new_counts = new_counts.sum()
+total_old_counts = old_counts.sum()
+total = total_new_counts + total_old_counts
 
-chi2, p_value, dof, ex = chi2_contingency(contingency_table)
+expected_new = total_new_counts * (total_new_counts / total)
+expected_old = total_old_counts * (total_old_counts / total)
 
-print(f"Статистика X^2: {chi2}")
+expected = np.array([expected_new, expected_old])
+
+valid = (expected > 0).all(axis=0)
+observed = observed[:, valid]
+expected = expected[:, valid]
+
+chi2_stat = np.sum((observed - expected) ** 2 / expected)
+
+dof = observed.shape[0] - 1
+
+p_value = 1 - chi2.cdf(chi2_stat, dof)
+
+
+print(f"Статистика X^2: {chi2_stat}")
 print(f"p-value: {p_value}")
 print(f"Степени свободы: {dof}")
 
