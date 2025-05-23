@@ -20,10 +20,10 @@ t_critical = stats.t.ppf(1-alpha/2, df= n-2)
 print(f'Критическое значение t для alpha=0.05: {t_critical}')
 print(f'коэффицент t: {t_stat}')
 print(f"коэффицент корреляции Пирсона:{r}")
-if abs(t_stat) > t_critical:
-    print('Есть статистически значимая корреляция.')
+if t_stat > t_critical:
+    print('Есть статистически положительная корреляция.')
 else:
-    print('Корреляции нет.')
+    print('есть отрицательная корреляция')
 
 plt.figure(figsize = (10,10))
 plt.scatter(x,y, alpha = 0.5)
